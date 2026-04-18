@@ -9,20 +9,25 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --bg: #080808; --surface: #111113; --border: #222226;
-      --text: #e0e0e0; --muted: #444; --accent: #ffdd00;
+      --text: #e0e0e0; --muted: #444;
+      --yellow: #ffdd00; --purple: #bf5fff; --red: #ff4444;
     }
     html, body {
       min-height: 100%; background: var(--bg); color: var(--text);
       font-family: 'DM Mono', monospace;
       display: flex; flex-direction: column;
       align-items: center; justify-content: flex-start;
-      overflow-y: auto; padding: 40px 16px 60px;
+      overflow-y: auto; padding: 36px 16px 60px;
     }
+
+    /* Ambient glow — color changes per mode */
     #ambientGlow {
       position: fixed; inset: 0; pointer-events: none;
-      background: radial-gradient(circle at 50% 30%, rgba(255,220,0,0.2) 0%, transparent 65%);
-      opacity: 0; transition: opacity 0.15s; z-index: 0;
+      opacity: 0; transition: opacity 0.2s, background 0.2s; z-index: 0;
     }
+    #ambientGlow.yellow { background: radial-gradient(circle at 50% 30%, rgba(255,220,0,0.2) 0%, transparent 65%); }
+    #ambientGlow.purple { background: radial-gradient(circle at 50% 30%, rgba(180,80,255,0.2) 0%, transparent 65%); }
+
     .content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 100%; }
 
     .torch-icon {
@@ -33,52 +38,55 @@
       filter: drop-shadow(0 0 30px #ffdd00) drop-shadow(0 0 60px #ffaa00);
       transform: scale(1.1);
     }
+    body.vibrating .torch-icon {
+      animation: shake 0.3s ease-in-out infinite;
+    }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)}
+      25%{transform:translateX(-4px)}
+      75%{transform:translateX(4px)}
+    }
+
     #modeLabel {
       font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800;
       letter-spacing: 0.06em; color: #222; margin-bottom: 6px;
       transition: color 0.2s; min-height: 34px;
     }
-    body.lit #modeLabel { color: var(--accent); text-shadow: 0 0 20px rgba(255,220,0,0.5); }
+    body.lit #modeLabel       { color: var(--yellow); text-shadow: 0 0 20px rgba(255,220,0,0.5); }
+    body.vibrating #modeLabel { color: var(--purple); text-shadow: 0 0 20px rgba(180,80,255,0.4); }
+
     #modeDesc {
       font-size: 11px; color: var(--muted); letter-spacing: 0.12em;
       text-transform: uppercase; margin-bottom: 28px; min-height: 16px;
     }
-    body.lit #modeDesc { color: #7a6500; }
+    body.lit #modeDesc       { color: #7a6500; }
+    body.vibrating #modeDesc { color: #6a3a8a; }
 
-    /* ── Real input field — triggers mobile keyboard ── */
+    /* Input */
     .input-wrap { width: min(360px, 92vw); margin-bottom: 20px; }
     #macroInput {
-      width: 100%;
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      padding: 16px 20px;
-      color: var(--accent);
-      font-family: 'Syne', sans-serif;
-      font-size: 24px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      outline: none;
-      caret-color: var(--accent);
-      transition: border-color 0.2s, box-shadow 0.2s;
-      /* Keep input clean — single char only visually */
+      width: 100%; background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 16px 20px; color: var(--yellow);
+      font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase; outline: none;
+      caret-color: var(--yellow); transition: border-color 0.2s, box-shadow 0.2s;
     }
     #macroInput::placeholder {
-      color: var(--muted);
-      font-size: 12px;
-      font-family: 'DM Mono', monospace;
-      font-weight: 400;
-      letter-spacing: 0.06em;
-      text-transform: none;
+      color: var(--muted); font-size: 12px; font-family: 'DM Mono', monospace;
+      font-weight: 400; letter-spacing: 0.06em; text-transform: none;
     }
     #macroInput:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(255,220,0,0.12);
+      border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(255,220,0,0.1);
     }
 
-    /* ── Macro rows ── */
-    .macros { display: flex; flex-direction: column; gap: 8px; width: min(360px, 92vw); }
+    /* Macro rows */
+    .macros { display: flex; flex-direction: column; gap: 7px; width: min(360px, 92vw); }
+
+    .section-label {
+      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: #2a2a2a; margin: 10px 0 2px 4px;
+    }
+
     .macro-row {
       display: flex; align-items: center; gap: 10px;
       padding: 11px 14px; border-radius: 10px;
@@ -86,34 +94,37 @@
       transition: border-color 0.2s, background 0.2s; cursor: pointer;
     }
     .macro-row:active { opacity: 0.7; }
-    .macro-row.active-mode {
-      border-color: var(--accent); background: rgba(255,220,0,0.05);
-    }
+    .macro-row.active-mode.yellow { border-color: var(--yellow); background: rgba(255,220,0,0.05); }
+    .macro-row.active-mode.purple { border-color: var(--purple); background: rgba(180,80,255,0.05); }
+
     .macro-key {
       background: rgba(255,255,255,0.07); border: 1px solid #333;
       border-radius: 6px; padding: 3px 10px; font-size: 13px;
       color: var(--text); font-weight: 500; min-width: 28px; text-align: center;
     }
-    .macro-key.enter { background: rgba(255,220,0,0.1); border-color: rgba(255,220,0,0.3); color: var(--accent); }
+    .macro-key.enter { background: rgba(255,220,0,0.1); border-color: rgba(255,220,0,0.3); color: var(--yellow); }
     .macro-plus { color: var(--muted); font-size: 11px; }
     .macro-desc { font-size: 12px; color: var(--muted); flex: 1; }
     .macro-dot {
       width: 7px; height: 7px; border-radius: 50%;
       background: #222; transition: background 0.2s, box-shadow 0.2s; flex-shrink: 0;
     }
-    .macro-row.active-mode .macro-dot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+    .macro-row.active-mode.yellow .macro-dot { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+    .macro-row.active-mode.purple .macro-dot { background: var(--purple); box-shadow: 0 0 6px var(--purple); }
 
     #statusBar {
       margin-top: 20px; font-size: 11px; letter-spacing: 0.12em;
       text-transform: uppercase; color: #2a2a2a; transition: color 0.3s;
     }
-    body.lit #statusBar { color: #5a4a00; }
+    body.lit       #statusBar { color: #5a4a00; }
+    body.vibrating #statusBar { color: #5a3a7a; }
 
-    /* ── Permission overlay ── */
+    /* Permission overlay */
     #permOverlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.96);
       display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 18px; z-index: 200; padding: 24px;
+      align-items: center; justify-content: center;
+      gap: 18px; z-index: 200; padding: 24px;
     }
     .p-icon { font-size: 64px; }
     #permOverlay h2 {
@@ -122,23 +133,22 @@
     }
     #permOverlay p { font-size: 13px; color: var(--muted); text-align: center; max-width: 270px; line-height: 1.7; }
     #permOverlay button {
-      background: var(--accent); border: none; color: #000;
+      background: var(--yellow); border: none; color: #000;
       border-radius: 10px; padding: 16px 40px;
       font-family: 'Syne', sans-serif; font-weight: 700;
-      font-size: 15px; cursor: pointer; letter-spacing: 0.04em;
+      font-size: 15px; cursor: pointer;
     }
-    #permErr { color: #ff5555; font-size: 12px; display: none; text-align: center; max-width: 270px; line-height: 1.6; }
+    #permErr { color: var(--red); font-size: 12px; display: none; text-align: center; max-width: 270px; line-height: 1.6; }
   </style>
 </head>
 <body>
 
 <div id="ambientGlow"></div>
 
-<!-- Permission overlay — shown on load -->
 <div id="permOverlay">
   <div class="p-icon">🔦</div>
   <h2>Allow Camera Access</h2>
-  <p>Camera permission is needed to control the flashlight on your device.</p>
+  <p>Camera permission is needed to control the flashlight.</p>
   <button onclick="requestPermission()">Allow &amp; Continue</button>
   <div id="permErr"></div>
 </div>
@@ -148,54 +158,71 @@
   <div id="modeLabel">STANDBY</div>
   <div id="modeDesc">Type a key + Enter to activate</div>
 
-  <!-- Real input — mobile keyboard appears when focused -->
   <div class="input-wrap">
-    <input
-      type="text"
-      id="macroInput"
-      placeholder="Type A, S, F, O then press Enter…"
-      autocomplete="off"
-      autocorrect="off"
+    <input type="text" id="macroInput"
+      placeholder="Type A, S, F, O, V, P… then Enter"
+      autocomplete="off" autocorrect="off"
       autocapitalize="characters"
-      spellcheck="false"
-      maxlength="1"
-    />
+      spellcheck="false" maxlength="1"/>
   </div>
 
   <div class="macros">
-    <div class="macro-row" id="row-a" onclick="runMacro('a')">
-      <span class="macro-key">A</span>
-      <span class="macro-plus">+</span>
+
+    <div class="section-label">🔦 Torch macros</div>
+
+    <div class="macro-row" id="row-o" onclick="runMacro('o')">
+      <span class="macro-key">O</span><span class="macro-plus">+</span>
       <span class="macro-key enter">Enter</span>
-      <span class="macro-desc">Heartbeat blink</span>
+      <span class="macro-desc">Steady torch ON</span>
+      <div class="macro-dot"></div>
+    </div>
+    <div class="macro-row" id="row-a" onclick="runMacro('a')">
+      <span class="macro-key">A</span><span class="macro-plus">+</span>
+      <span class="macro-key enter">Enter</span>
+      <span class="macro-desc">Heartbeat blink (lub-dub)</span>
       <div class="macro-dot"></div>
     </div>
     <div class="macro-row" id="row-s" onclick="runMacro('s')">
-      <span class="macro-key">S</span>
-      <span class="macro-plus">+</span>
+      <span class="macro-key">S</span><span class="macro-plus">+</span>
       <span class="macro-key enter">Enter</span>
       <span class="macro-desc">SOS · · · — — — · · ·</span>
       <div class="macro-dot"></div>
     </div>
     <div class="macro-row" id="row-f" onclick="runMacro('f')">
-      <span class="macro-key">F</span>
-      <span class="macro-plus">+</span>
+      <span class="macro-key">F</span><span class="macro-plus">+</span>
       <span class="macro-key enter">Enter</span>
-      <span class="macro-desc">Fast strobe flash</span>
+      <span class="macro-desc">Fast strobe</span>
       <div class="macro-dot"></div>
     </div>
-    <div class="macro-row" id="row-o" onclick="runMacro('o')">
-      <span class="macro-key">O</span>
-      <span class="macro-plus">+</span>
+
+    <div class="section-label">📳 Vibration macros</div>
+
+    <div class="macro-row" id="row-v" onclick="runMacro('v')">
+      <span class="macro-key">V</span><span class="macro-plus">+</span>
       <span class="macro-key enter">Enter</span>
-      <span class="macro-desc">Steady torch ON</span>
+      <span class="macro-desc">Continuous vibration</span>
       <div class="macro-dot"></div>
     </div>
+    <div class="macro-row" id="row-p" onclick="runMacro('p')">
+      <span class="macro-key">P</span><span class="macro-plus">+</span>
+      <span class="macro-key enter">Enter</span>
+      <span class="macro-desc">Pulse vibration (on/off)</span>
+      <div class="macro-dot"></div>
+    </div>
+    <div class="macro-row" id="row-b" onclick="runMacro('b')">
+      <span class="macro-key">B</span><span class="macro-plus">+</span>
+      <span class="macro-key enter">Enter</span>
+      <span class="macro-desc">Heartbeat vibration</span>
+      <div class="macro-dot"></div>
+    </div>
+
+    <div class="section-label">⬛ Stop</div>
+
     <div class="macro-row" id="row-stop" onclick="runMacro('')">
       <span class="macro-key enter">Enter</span>
       <span class="macro-plus" style="visibility:hidden">+</span>
       <span class="macro-key" style="visibility:hidden">·</span>
-      <span class="macro-desc">Stop / Turn OFF</span>
+      <span class="macro-desc">Stop everything / OFF</span>
       <div class="macro-dot"></div>
     </div>
   </div>
@@ -204,11 +231,13 @@
 </div>
 
 <script>
-  let torchTrack  = null;
-  let blinkTimer  = null;
-  let cameraReady = false;
+  let torchTrack   = null;
+  let blinkTimer   = null;
+  let vibTimer     = null;
+  let cameraReady  = false;
+  let vibSupported = !!navigator.vibrate;
 
-  // ── Auto-request camera on load ───────────────────────────────────
+  // ── Auto camera request on load ───────────────────────────────────
   window.addEventListener('load', () => setTimeout(requestPermission, 300));
 
   async function requestPermission() {
@@ -217,18 +246,19 @@
       torchTrack = stream.getVideoTracks()[0];
       const caps = torchTrack.getCapabilities();
       if (!caps || !caps.torch) {
-        showPermErr('Torch not supported on this device. Try Android Chrome.');
-        return;
+        showPermErr('Torch not supported on this device. Vibration macros will still work.');
       }
       cameraReady = true;
       document.getElementById('permOverlay').style.display = 'none';
-      // Focus input AFTER overlay hides — this pops the keyboard on mobile
       setTimeout(() => document.getElementById('macroInput').focus(), 100);
       setStatus('Ready — type a key + Enter');
     } catch (err) {
-      showPermErr(err.name === 'NotAllowedError'
-        ? 'Permission denied. Allow camera in browser settings, then reload.'
-        : 'Camera error: ' + err.message);
+      // Even if camera fails, allow vibration-only use
+      cameraReady = true;
+      document.getElementById('permOverlay').style.display = 'none';
+      setTimeout(() => document.getElementById('macroInput').focus(), 100);
+      showPermErr('Camera denied — torch macros disabled, vibration still works.');
+      setStatus('Vibration only mode');
     }
   }
 
@@ -237,9 +267,8 @@
     el.textContent = msg; el.style.display = 'block';
   }
 
-  // ── Input: Enter key triggers macro ──────────────────────────────
+  // ── Input ─────────────────────────────────────────────────────────
   document.getElementById('macroInput').addEventListener('keydown', (e) => {
-    if (!cameraReady) return;
     if (e.key === 'Enter') {
       e.preventDefault();
       const val = document.getElementById('macroInput').value.trim().toLowerCase();
@@ -248,30 +277,36 @@
     }
   });
 
-  // Keep input focused if user taps away
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.macro-row') && cameraReady) {
+    if (!e.target.closest('.macro-row') && cameraReady)
       setTimeout(() => document.getElementById('macroInput').focus(), 50);
-    }
   });
 
   // ── Macro runner ──────────────────────────────────────────────────
   function runMacro(key) {
     stopAll();
     switch (key) {
-      case '':  setMode(null, 'STANDBY', 'Torch off'); break;
-      case 'a': startHeartbeat(); break;
-      case 's': startSOS();       break;
-      case 'f': startStrobe();    break;
-      case 'o': startSteady();    break;
-      default:  setStatus(`"${key.toUpperCase()}" not mapped — try A, S, F or O`);
+      case '':  setMode(null,  'STANDBY',    'All off', 'yellow'); break;
+      case 'o': startSteady();     break;
+      case 'a': startHeartbeat();  break;
+      case 's': startSOS();        break;
+      case 'f': startStrobe();     break;
+      case 'v': startVibCont();    break;
+      case 'p': startVibPulse();   break;
+      case 'b': startVibHeartbeat(); break;
+      default:  setStatus(`"${key.toUpperCase()}" not mapped`);
     }
     setTimeout(() => document.getElementById('macroInput').focus(), 50);
   }
 
-  // ── HEARTBEAT: lub-dub ────────────────────────────────────────────
+  // ── TORCH MACROS ──────────────────────────────────────────────────
+  function startSteady() {
+    setMode('o', 'STEADY ON', 'Torch on full', 'yellow');
+    setTorch(true);
+  }
+
   function startHeartbeat() {
-    setMode('a', 'HEARTBEAT', 'Lub-dub rhythm');
+    setMode('a', 'HEARTBEAT', 'Lub-dub rhythm', 'yellow');
     const pattern = [80, 100, 80, 700];
     let step = 0; let lit = false;
     async function beat() {
@@ -281,11 +316,10 @@
     beat();
   }
 
-  // ── SOS: · · · — — — · · · ───────────────────────────────────────
   function startSOS() {
-    setMode('s', 'SOS', '· · · — — — · · ·');
-    const D=120, L=360, SG=120, LG=360, WG=900;
-    const seq = [D,SG,D,SG,D,LG, L,SG,L,SG,L,LG, D,SG,D,SG,D,WG];
+    setMode('s', 'SOS', '· · · — — — · · ·', 'yellow');
+    const D=120,L=360,SG=120,LG=360,WG=900;
+    const seq=[D,SG,D,SG,D,LG, L,SG,L,SG,L,LG, D,SG,D,SG,D,WG];
     let i=0; let lit=false;
     async function next() {
       lit=!lit; await setTorch(lit);
@@ -294,9 +328,8 @@
     next();
   }
 
-  // ── STROBE ────────────────────────────────────────────────────────
   function startStrobe() {
-    setMode('f', 'STROBE', 'Rapid flash');
+    setMode('f', 'STROBE', 'Rapid flash', 'yellow');
     let lit=false;
     async function flash() {
       lit=!lit; await setTorch(lit);
@@ -305,10 +338,43 @@
     flash();
   }
 
-  // ── STEADY ON ─────────────────────────────────────────────────────
-  function startSteady() {
-    setMode('o', 'STEADY ON', 'Torch on full');
-    setTorch(true);
+  // ── VIBRATION MACROS ──────────────────────────────────────────────
+
+  // Continuous — repeating long buzz
+  function startVibCont() {
+    if (!vibSupported) { setStatus('Vibration not supported on this device'); return; }
+    setMode('v', 'VIBRATING', 'Continuous buzz', 'purple');
+    document.body.classList.add('vibrating');
+    function buzz() {
+      navigator.vibrate(500);
+      vibTimer = setTimeout(buzz, 600);
+    }
+    buzz();
+  }
+
+  // Pulse — on/off rhythm
+  function startVibPulse() {
+    if (!vibSupported) { setStatus('Vibration not supported on this device'); return; }
+    setMode('p', 'PULSE', 'On / off rhythm', 'purple');
+    document.body.classList.add('vibrating');
+    function pulse() {
+      navigator.vibrate([200, 200]);
+      vibTimer = setTimeout(pulse, 500);
+    }
+    pulse();
+  }
+
+  // Heartbeat vibration — lub-dub
+  function startVibHeartbeat() {
+    if (!vibSupported) { setStatus('Vibration not supported on this device'); return; }
+    setMode('b', 'VIB HEARTBEAT', 'Lub-dub feel', 'purple');
+    document.body.classList.add('vibrating');
+    // [on, off, on, off] = lub, gap, dub, long pause
+    function beat() {
+      navigator.vibrate([80, 100, 80, 700]);
+      vibTimer = setTimeout(beat, 1000);
+    }
+    beat();
   }
 
   // ── Core torch ────────────────────────────────────────────────────
@@ -316,22 +382,32 @@
     if (!torchTrack) return;
     try { await torchTrack.applyConstraints({ advanced: [{ torch: on }] }); } catch(e){}
     document.body.classList.toggle('lit', on);
-    document.getElementById('ambientGlow').style.opacity = on ? '1' : '0';
+    const glow = document.getElementById('ambientGlow');
+    glow.className = on ? 'yellow' : '';
+    glow.style.opacity = on ? '1' : '0';
   }
 
   function stopAll() {
-    if (blinkTimer) { clearTimeout(blinkTimer); blinkTimer=null; }
+    // Stop torch
+    if (blinkTimer) { clearTimeout(blinkTimer); blinkTimer = null; }
     setTorch(false);
-    document.querySelectorAll('.macro-row').forEach(r => r.classList.remove('active-mode'));
+    // Stop vibration
+    if (vibTimer) { clearTimeout(vibTimer); vibTimer = null; }
+    if (vibSupported) navigator.vibrate(0);
+    document.body.classList.remove('lit', 'vibrating');
+    const glow = document.getElementById('ambientGlow');
+    glow.style.opacity = '0'; glow.className = '';
+    document.querySelectorAll('.macro-row').forEach(r => r.classList.remove('active-mode', 'yellow', 'purple'));
   }
 
-  function setMode(key, label, desc) {
+  function setMode(key, label, desc, color) {
     document.getElementById('modeLabel').textContent = label;
     document.getElementById('modeDesc').textContent  = desc;
-    document.querySelectorAll('.macro-row').forEach(r => r.classList.remove('active-mode'));
-    const row = document.getElementById(key ? `row-${key}` : 'row-stop');
-    if (row) row.classList.add('active-mode');
-    setStatus(label === 'STANDBY' ? 'Torch off — ready' : `Active: ${label}`);
+    document.querySelectorAll('.macro-row').forEach(r => r.classList.remove('active-mode','yellow','purple'));
+    const rowId = key ? `row-${key}` : 'row-stop';
+    const row = document.getElementById(rowId);
+    if (row) { row.classList.add('active-mode', color); }
+    setStatus(label === 'STANDBY' ? 'All off — ready' : `Active: ${label}`);
   }
 
   function setStatus(msg) { document.getElementById('statusBar').textContent = msg; }
