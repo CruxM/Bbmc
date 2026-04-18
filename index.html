@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BlackBox Input V1</title>
+  <title>BlackBox Input</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -14,9 +14,9 @@
     }
     html, body {
       min-height: 100%; background: var(--bg); color: var(--text);
-      font-family: 'DM Mono', monospace; display: flex;
-      align-items: flex-start; justify-content: center;
-      overflow-y: auto; padding: 40px 16px;
+      font-family: 'DM Mono', monospace;
+      display: flex; align-items: flex-start; justify-content: center;
+      overflow-y: auto; padding: 32px 16px;
     }
     body::before {
       content: ''; position: fixed; inset: 0;
@@ -30,34 +30,36 @@
     body::after {
       content: ''; position: fixed; width: 600px; height: 600px;
       background: radial-gradient(circle, rgba(0,229,160,0.07) 0%, transparent 70%);
-      top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;
+      top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none;
     }
     .card {
-      position: relative; width: min(680px, 94vw); background: var(--surface);
-      border: 1px solid var(--border); border-radius: 20px; padding: 40px 32px 36px;
+      position: relative; width: min(680px, 94vw);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 36px 28px 32px;
       box-shadow: 0 0 0 1px rgba(255,255,255,0.03), 0 40px 80px rgba(0,0,0,0.6);
-      animation: cardIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation: cardIn 0.6s cubic-bezier(0.22,1,0.36,1) both;
     }
     @keyframes cardIn {
-      from { opacity: 0; transform: translateY(28px) scale(0.97); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
+      from { opacity:0; transform:translateY(28px) scale(0.97); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
     }
-    .status-bar { display:flex; align-items:center; gap:8px; margin-bottom:28px; }
+    .status-bar { display:flex; align-items:center; gap:8px; margin-bottom:24px; }
     .dot {
-      width:8px; height:8px; border-radius:50%; background:var(--accent);
-      box-shadow:0 0 8px var(--accent); animation:pulse 2s ease-in-out infinite;
+      width:8px; height:8px; border-radius:50%;
+      background:var(--accent); box-shadow:0 0 8px var(--accent);
+      animation:pulse 2s ease-in-out infinite; flex-shrink:0;
     }
     @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
-    .status-text { font-size:11px; letter-spacing:0.15em; text-transform:uppercase; color:var(--accent); font-weight:500; }
+    .status-text { font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); font-weight:500; }
     h1 {
-      font-family:'Syne',sans-serif; font-size:clamp(26px,5vw,38px); font-weight:800;
-      line-height:1.15; margin-bottom:10px;
+      font-family:'Syne',sans-serif; font-size:clamp(24px,5vw,36px);
+      font-weight:800; line-height:1.15; margin-bottom:8px;
       background:linear-gradient(135deg,#e8eaf0 30%,var(--accent));
       -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
     }
-    .subtitle { font-size:13px; color:var(--muted); margin-bottom:28px; letter-spacing:0.02em; }
+    .subtitle { font-size:13px; color:var(--muted); margin-bottom:24px; }
     textarea {
-      width:100%; min-height:140px; background:rgba(255,255,255,0.03);
+      width:100%; min-height:120px; background:rgba(255,255,255,0.03);
       border:1.5px solid var(--border); border-radius:12px; padding:16px 18px;
       color:var(--text); font-family:'DM Mono',monospace; font-size:15px;
       line-height:1.7; resize:vertical; outline:none;
@@ -68,52 +70,74 @@
       border-color:var(--accent); background:rgba(0,229,160,0.03);
       box-shadow:0 0 0 3px var(--glow);
     }
-    #pastePreview {
-      display:none; margin-top:12px; border-radius:12px;
-      overflow:hidden; border:1px solid var(--border);
+
+    /* ── Image grid ── */
+    #imageGrid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
     }
-    #pastePreview img {
-      width:100%; display:block; max-height:200px;
-      object-fit:contain; background:#0d0e12;
+    .img-thumb {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #0d0e12;
+      aspect-ratio: 1;
     }
-    .preview-label {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:8px 14px; background:rgba(0,229,160,0.05);
-      border-top:1px solid var(--border); font-size:11px; color:var(--accent);
+    .img-thumb img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
     }
-    .clear-btn {
-      background:none; border:none; color:var(--muted); cursor:pointer;
-      font-size:11px; font-family:'DM Mono',monospace; transition:color 0.2s;
+    .img-thumb .remove-img {
+      position: absolute; top: 4px; right: 4px;
+      background: rgba(0,0,0,0.7); border: none;
+      color: #fff; border-radius: 50%;
+      width: 22px; height: 22px;
+      font-size: 12px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
     }
-    .clear-btn:hover { color:#ff5f5f; }
+    .img-thumb .remove-img:hover { background: #ff4444; }
+    .img-count {
+      font-size: 11px; color: var(--accent);
+      margin-top: 8px; letter-spacing: 0.05em;
+    }
+
+    /* ── Buttons ── */
     .actions {
-      display:flex; flex-wrap:wrap; gap:10px;
-      margin-top:20px; justify-content:flex-end;
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin-top: 20px; justify-content: flex-end;
     }
     button.secondary {
-      background:transparent; border:1px solid var(--border); color:var(--muted);
-      border-radius:8px; padding:10px 20px; font-family:'DM Mono',monospace;
-      font-size:13px; cursor:pointer; transition:border-color 0.2s,color 0.2s;
+      background: transparent; border: 1px solid var(--border);
+      color: var(--muted); border-radius: 8px; padding: 10px 18px;
+      font-family: 'DM Mono', monospace; font-size: 13px;
+      cursor: pointer; transition: border-color 0.2s, color 0.2s;
     }
-    button.secondary:hover { border-color:var(--muted); color:var(--text); }
+    button.secondary:hover { border-color: var(--muted); color: var(--text); }
     button.attach {
-      background:rgba(0,229,160,0.08); border:1px solid var(--accent);
-      color:var(--accent); border-radius:8px; padding:10px 20px;
-      font-family:'DM Mono',monospace; font-size:13px; cursor:pointer;
-      transition:background 0.2s;
+      background: rgba(0,229,160,0.08); border: 1px solid var(--accent);
+      color: var(--accent); border-radius: 8px; padding: 10px 18px;
+      font-family: 'DM Mono', monospace; font-size: 13px;
+      cursor: pointer; transition: background 0.2s;
     }
-    button.attach:hover { background:rgba(0,229,160,0.15); }
+    button.attach:hover { background: rgba(0,229,160,0.18); }
+    button.attach:disabled { opacity: 0.4; cursor: not-allowed; }
     button.primary {
-      background:var(--accent); border:none; color:#0b0c0f; border-radius:8px;
-      padding:10px 24px; font-family:'Syne',sans-serif; font-weight:700;
-      font-size:13px; cursor:pointer; letter-spacing:0.04em;
-      transition:opacity 0.2s,transform 0.15s,box-shadow 0.2s;
+      background: var(--accent); border: none; color: #0b0c0f;
+      border-radius: 8px; padding: 10px 24px;
+      font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: 13px; cursor: pointer; letter-spacing: 0.04em;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
     }
     button.primary:hover { opacity:0.9; transform:translateY(-1px); box-shadow:0 4px 20px rgba(0,229,160,0.3); }
     button.primary:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
     #output {
-      display:none; margin-top:16px; padding:14px 16px;
-      border-radius:10px; font-size:13px;
+      display: none; margin-top: 16px; padding: 14px 16px;
+      border-radius: 10px; font-size: 13px;
     }
     #output.success { background:rgba(0,229,160,0.05); border:1px solid rgba(0,229,160,0.2); color:var(--accent); }
     #output.error   { background:rgba(255,100,100,0.05); border:1px solid rgba(255,100,100,0.2); color:#ff7070; }
@@ -126,115 +150,178 @@
     <span class="status-text">Keyboard Ready — Telegram Connected</span>
   </div>
   <h1>BlackBox Input</h1>
-  <p class="subtitle">Type or attach an image → press Enter or Send → goes to Telegram.</p>
+  <p class="subtitle">Type text and/or attach up to 6 images → Send to Telegram.</p>
 
-  <div class="input-wrap">
-    <textarea id="mainInput"
-      placeholder="Start typing… or attach an image below. Press Enter to send."
-      autofocus></textarea>
+  <textarea id="mainInput"
+    placeholder="Start typing… Press Enter to send, Shift+Enter for new line."
+    autofocus></textarea>
 
-    <div id="pastePreview">
-      <img id="pasteImg" src="" alt="Pasted image"/>
-      <div class="preview-label">
-        <span>📎 Image ready to send</span>
-        <button class="clear-btn" onclick="clearImage()">✕ Remove</button>
-      </div>
-    </div>
-  </div>
+  <!-- Image thumbnails grid -->
+  <div id="imageGrid"></div>
+  <div id="imageCount" class="img-count"></div>
 
-  <!-- Hidden file input — opens gallery -->
-  <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileSelect(event)"/>
+  <!-- Hidden file input — multiple select -->
+  <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFileSelect(event)"/>
 
   <div class="actions">
     <button class="secondary" onclick="clearAll()">Clear</button>
-    <button class="attach" onclick="document.getElementById('fileInput').click()">📷 Attach Image</button>
-    <button class="primary" id="sendBtn" onclick="handleSubmit()">Send →</button>
+    <button class="attach" id="attachBtn" onclick="document.getElementById('fileInput').click()">📷 Attach Images</button>
+    <button class="primary" id="sendBtn" onclick="handleSubmit()">Send to Telegram →</button>
   </div>
 
   <div id="output"></div>
 </div>
 
 <script>
-  const BOT_TOKEN = '8735493766:AAG0hEz-jD3ro9uZRSkJUeYr4DUBuBhjhjs';
-  const CHAT_ID   = '5316273255';
-  let pastedImageBlob = null;
+  const BOT_TOKEN  = '8735493766:AAG0hEz-jD3ro9uZRSkJUeYr4DUBuBhjhjs';
+  const CHAT_ID    = '5316273255';
+  const MAX_IMAGES = 6;
 
+  let imageBlobs = [];
+
+  // ── Auto-focus ────────────────────────────────────────────────────
   window.addEventListener('load', () => document.getElementById('mainInput').focus());
-
   document.body.addEventListener('click', (e) => {
     if (!e.target.closest('button') && !e.target.closest('textarea') && !e.target.closest('input'))
       document.getElementById('mainInput').focus();
   });
 
+  // ── Enter to send ─────────────────────────────────────────────────
   document.getElementById('mainInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
   });
 
+  // ── Ctrl+V paste ──────────────────────────────────────────────────
   document.getElementById('mainInput').addEventListener('paste', (e) => {
     const items = e.clipboardData?.items;
     if (!items) return;
     for (const item of items) {
       if (item.type.startsWith('image/')) {
         e.preventDefault();
-        pastedImageBlob = item.getAsFile();
-        showImagePreview(pastedImageBlob);
+        addImage(item.getAsFile());
         break;
       }
     }
   });
 
+  // ── File picker ───────────────────────────────────────────────────
   function handleFileSelect(e) {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      pastedImageBlob = file;
-      showImagePreview(file);
-    }
+    Array.from(e.target.files).forEach(f => {
+      if (f.type.startsWith('image/')) addImage(f);
+    });
     e.target.value = '';
   }
 
-  // Drag and drop
-  const card = document.querySelector('.card');
-  card.addEventListener('dragover', (e) => { e.preventDefault(); card.style.borderColor = 'var(--accent)'; });
-  card.addEventListener('dragleave', () => { card.style.borderColor = ''; });
-  card.addEventListener('drop', (e) => {
-    e.preventDefault(); card.style.borderColor = '';
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) { pastedImageBlob = file; showImagePreview(file); }
-  });
-
-  function showImagePreview(blob) {
-    document.getElementById('pasteImg').src = URL.createObjectURL(blob);
-    document.getElementById('pastePreview').style.display = 'block';
+  // ── Add / remove images ───────────────────────────────────────────
+  function addImage(blob) {
+    if (imageBlobs.length >= MAX_IMAGES) {
+      showOutput('error', `⚠ Max ${MAX_IMAGES} images allowed.`);
+      return;
+    }
+    imageBlobs.push(blob);
+    renderGrid();
   }
 
+  function removeImage(index) {
+    imageBlobs.splice(index, 1);
+    renderGrid();
+  }
+
+  function renderGrid() {
+    const grid      = document.getElementById('imageGrid');
+    const countEl   = document.getElementById('imageCount');
+    const attachBtn = document.getElementById('attachBtn');
+    grid.innerHTML  = '';
+
+    imageBlobs.forEach((blob, i) => {
+      const url   = URL.createObjectURL(blob);
+      const thumb = document.createElement('div');
+      thumb.className = 'img-thumb';
+      thumb.innerHTML = `
+        <img src="${url}" alt="Image ${i+1}"/>
+        <button class="remove-img" onclick="removeImage(${i})">✕</button>
+      `;
+      grid.appendChild(thumb);
+    });
+
+    countEl.textContent = imageBlobs.length > 0
+      ? `${imageBlobs.length} / ${MAX_IMAGES} image${imageBlobs.length > 1 ? 's' : ''} attached`
+      : '';
+
+    attachBtn.disabled    = imageBlobs.length >= MAX_IMAGES;
+    attachBtn.textContent = imageBlobs.length >= MAX_IMAGES ? '✓ Max reached' : '📷 Attach Images';
+  }
+
+  // ── Drag & drop ───────────────────────────────────────────────────
+  const card = document.querySelector('.card');
+  card.addEventListener('dragover',  (e) => { e.preventDefault(); card.style.borderColor = 'var(--accent)'; });
+  card.addEventListener('dragleave', ()  => { card.style.borderColor = ''; });
+  card.addEventListener('drop', (e) => {
+    e.preventDefault(); card.style.borderColor = '';
+    Array.from(e.dataTransfer.files).forEach(f => {
+      if (f.type.startsWith('image/')) addImage(f);
+    });
+  });
+
+  // ── Send to Telegram ──────────────────────────────────────────────
   async function handleSubmit() {
     const text = document.getElementById('mainInput').value.trim();
     const btn  = document.getElementById('sendBtn');
-    if (!text && !pastedImageBlob) { showOutput('error', '⚠ Nothing to send yet.'); return; }
-    btn.disabled = true; btn.textContent = 'Sending…';
+
+    if (!text && imageBlobs.length === 0) {
+      showOutput('error', '⚠ Nothing to send yet.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+
     try {
-      if (pastedImageBlob) {
-        const form = new FormData();
-        form.append('chat_id', CHAT_ID);
-        form.append('photo', pastedImageBlob, 'image.png');
-        if (text) form.append('caption', text);
-        const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method:'POST', body:form });
-        const data = await res.json();
-        if (!data.ok) throw new Error(data.description);
-      } else {
-        const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-          method:'POST', headers:{'Content-Type':'application/json'},
+      if (imageBlobs.length === 0) {
+        // Text only
+        const res  = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ chat_id: CHAT_ID, text })
         });
         const data = await res.json();
         if (!data.ok) throw new Error(data.description);
+
+      } else if (imageBlobs.length === 1) {
+        // Single photo
+        const form = new FormData();
+        form.append('chat_id', CHAT_ID);
+        form.append('photo', imageBlobs[0], 'image.png');
+        if (text) form.append('caption', text);
+        const res  = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method:'POST', body:form });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.description);
+
+      } else {
+        // Multiple photos — media group
+        const mediaGroup = imageBlobs.map((_, i) => ({
+          type:  'photo',
+          media: `attach://photo${i}`,
+          ...(i === 0 && text ? { caption: text } : {})
+        }));
+        const form = new FormData();
+        form.append('chat_id', CHAT_ID);
+        form.append('media', JSON.stringify(mediaGroup));
+        imageBlobs.forEach((blob, i) => form.append(`photo${i}`, blob, `image${i}.png`));
+        const res  = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMediaGroup`, { method:'POST', body:form });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.description);
       }
-      showOutput('success', '✓ Sent to Telegram!');
+
+      const n = imageBlobs.length;
+      showOutput('success', `✓ Sent! ${n > 0 ? `(${n} image${n>1?'s':''})` : ''}`);
       clearAll();
+
     } catch (err) {
       showOutput('error', '✕ Failed: ' + err.message);
     } finally {
-      btn.disabled = false; btn.textContent = 'Send →';
+      btn.disabled = false;
+      btn.textContent = 'Send to Telegram →';
     }
   }
 
@@ -244,16 +331,10 @@
     setTimeout(() => { out.style.display = 'none'; }, 4000);
   }
 
-  function clearImage() {
-    document.getElementById('pastePreview').style.display = 'none';
-    document.getElementById('pasteImg').src = '';
-    pastedImageBlob = null;
-    document.getElementById('mainInput').focus();
-  }
-
   function clearAll() {
     document.getElementById('mainInput').value = '';
-    clearImage();
+    imageBlobs = [];
+    renderGrid();
     document.getElementById('output').style.display = 'none';
     document.getElementById('mainInput').focus();
   }
