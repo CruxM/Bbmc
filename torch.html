@@ -12,69 +12,80 @@
       --text: #e0e0e0; --muted: #444; --accent: #ffdd00;
     }
     html, body {
-      height: 100%; background: var(--bg); color: var(--text);
+      min-height: 100%; background: var(--bg); color: var(--text);
       font-family: 'DM Mono', monospace;
       display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      overflow: hidden; user-select: none;
+      align-items: center; justify-content: flex-start;
+      overflow-y: auto; padding: 40px 16px 60px;
     }
     #ambientGlow {
       position: fixed; inset: 0; pointer-events: none;
-      background: radial-gradient(circle at 50% 40%, rgba(255,220,0,0.22) 0%, transparent 65%);
-      opacity: 0; transition: opacity 0.15s;
+      background: radial-gradient(circle at 50% 30%, rgba(255,220,0,0.2) 0%, transparent 65%);
+      opacity: 0; transition: opacity 0.15s; z-index: 0;
     }
+    .content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 100%; }
+
     .torch-icon {
-      font-size: 90px; line-height: 1;
+      font-size: 80px; line-height: 1; margin-bottom: 16px;
       transition: filter 0.1s, transform 0.1s;
-      margin-bottom: 20px;
     }
     body.lit .torch-icon {
       filter: drop-shadow(0 0 30px #ffdd00) drop-shadow(0 0 60px #ffaa00);
-      transform: scale(1.08);
+      transform: scale(1.1);
     }
     #modeLabel {
-      font-family: 'Syne', sans-serif;
-      font-size: 28px; font-weight: 800; letter-spacing: 0.06em;
-      color: #222; margin-bottom: 8px; transition: color 0.2s; min-height: 36px;
+      font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800;
+      letter-spacing: 0.06em; color: #222; margin-bottom: 6px;
+      transition: color 0.2s; min-height: 34px;
     }
     body.lit #modeLabel { color: var(--accent); text-shadow: 0 0 20px rgba(255,220,0,0.5); }
     #modeDesc {
-      font-size: 12px; color: var(--muted); letter-spacing: 0.12em;
-      text-transform: uppercase; margin-bottom: 32px; min-height: 18px;
+      font-size: 11px; color: var(--muted); letter-spacing: 0.12em;
+      text-transform: uppercase; margin-bottom: 28px; min-height: 16px;
     }
     body.lit #modeDesc { color: #7a6500; }
 
-    /* Input display */
-    .input-display {
-      display: flex; align-items: center; gap: 12px;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; padding: 14px 20px;
-      width: min(360px, 88vw); margin-bottom: 20px;
+    /* ── Real input field — triggers mobile keyboard ── */
+    .input-wrap { width: min(360px, 92vw); margin-bottom: 20px; }
+    #macroInput {
+      width: 100%;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      color: var(--accent);
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      outline: none;
+      caret-color: var(--accent);
       transition: border-color 0.2s, box-shadow 0.2s;
+      /* Keep input clean — single char only visually */
     }
-    .input-display.active {
+    #macroInput::placeholder {
+      color: var(--muted);
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      text-transform: none;
+    }
+    #macroInput:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(255,220,0,0.15);
+      box-shadow: 0 0 0 3px rgba(255,220,0,0.12);
     }
-    #typedKey {
-      font-size: 22px; font-weight: 500; color: var(--accent);
-      min-width: 18px; font-family: 'Syne', sans-serif;
-    }
-    .input-hint { font-size: 12px; color: var(--muted); flex: 1; }
-    .cursor {
-      width: 2px; height: 20px; background: var(--accent);
-      animation: blink-cur 1s step-end infinite;
-    }
-    @keyframes blink-cur { 0%,100%{opacity:1} 50%{opacity:0} }
 
-    /* Macro rows */
-    .macros { display: flex; flex-direction: column; gap: 8px; width: min(360px, 88vw); }
+    /* ── Macro rows ── */
+    .macros { display: flex; flex-direction: column; gap: 8px; width: min(360px, 92vw); }
     .macro-row {
       display: flex; align-items: center; gap: 10px;
-      padding: 10px 14px; border-radius: 10px;
+      padding: 11px 14px; border-radius: 10px;
       background: var(--surface); border: 1px solid var(--border);
-      transition: border-color 0.2s, background 0.2s;
+      transition: border-color 0.2s, background 0.2s; cursor: pointer;
     }
+    .macro-row:active { opacity: 0.7; }
     .macro-row.active-mode {
       border-color: var(--accent); background: rgba(255,220,0,0.05);
     }
@@ -85,28 +96,26 @@
     }
     .macro-key.enter { background: rgba(255,220,0,0.1); border-color: rgba(255,220,0,0.3); color: var(--accent); }
     .macro-plus { color: var(--muted); font-size: 11px; }
-    .macro-desc { font-size: 12px; color: var(--muted); flex: 1; letter-spacing: 0.03em; }
+    .macro-desc { font-size: 12px; color: var(--muted); flex: 1; }
     .macro-dot {
       width: 7px; height: 7px; border-radius: 50%;
       background: #222; transition: background 0.2s, box-shadow 0.2s; flex-shrink: 0;
     }
-    .macro-row.active-mode .macro-dot {
-      background: var(--accent); box-shadow: 0 0 6px var(--accent);
-    }
+    .macro-row.active-mode .macro-dot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
 
     #statusBar {
-      position: fixed; bottom: 24px; font-size: 11px;
-      letter-spacing: 0.12em; text-transform: uppercase; color: #222; transition: color 0.3s;
+      margin-top: 20px; font-size: 11px; letter-spacing: 0.12em;
+      text-transform: uppercase; color: #2a2a2a; transition: color 0.3s;
     }
     body.lit #statusBar { color: #5a4a00; }
 
-    /* Permission overlay */
+    /* ── Permission overlay ── */
     #permOverlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+      position: fixed; inset: 0; background: rgba(0,0,0,0.96);
       display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 18px; z-index: 100;
+      align-items: center; justify-content: center; gap: 18px; z-index: 200; padding: 24px;
     }
-    #permOverlay .p-icon { font-size: 64px; }
+    .p-icon { font-size: 64px; }
     #permOverlay h2 {
       font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800;
       color: var(--text); text-align: center;
@@ -114,197 +123,184 @@
     #permOverlay p { font-size: 13px; color: var(--muted); text-align: center; max-width: 270px; line-height: 1.7; }
     #permOverlay button {
       background: var(--accent); border: none; color: #000;
-      border-radius: 10px; padding: 14px 36px;
+      border-radius: 10px; padding: 16px 40px;
       font-family: 'Syne', sans-serif; font-weight: 700;
-      font-size: 15px; cursor: pointer; letter-spacing: 0.04em; transition: opacity 0.2s;
+      font-size: 15px; cursor: pointer; letter-spacing: 0.04em;
     }
-    #permOverlay button:hover { opacity: 0.85; }
-    #permErr { color: #ff5555; font-size: 12px; display: none; text-align: center; max-width: 270px; }
+    #permErr { color: #ff5555; font-size: 12px; display: none; text-align: center; max-width: 270px; line-height: 1.6; }
   </style>
 </head>
-<body tabindex="0">
+<body>
 
 <div id="ambientGlow"></div>
 
-<!-- Auto permission overlay -->
+<!-- Permission overlay — shown on load -->
 <div id="permOverlay">
   <div class="p-icon">🔦</div>
   <h2>Allow Camera Access</h2>
-  <p>Camera permission is needed to control the flashlight. Tap below to allow.</p>
+  <p>Camera permission is needed to control the flashlight on your device.</p>
   <button onclick="requestPermission()">Allow &amp; Continue</button>
   <div id="permErr"></div>
 </div>
 
-<div class="torch-icon">🔦</div>
-<div id="modeLabel">STANDBY</div>
-<div id="modeDesc">Type a key + Enter to run a macro</div>
+<div class="content">
+  <div class="torch-icon">🔦</div>
+  <div id="modeLabel">STANDBY</div>
+  <div id="modeDesc">Type a key + Enter to activate</div>
 
-<div class="input-display" id="inputDisplay">
-  <span id="typedKey"></span>
-  <span class="input-hint">Type macro key then Enter…</span>
-  <div class="cursor"></div>
+  <!-- Real input — mobile keyboard appears when focused -->
+  <div class="input-wrap">
+    <input
+      type="text"
+      id="macroInput"
+      placeholder="Type A, S, F, O then press Enter…"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="characters"
+      spellcheck="false"
+      maxlength="1"
+    />
+  </div>
+
+  <div class="macros">
+    <div class="macro-row" id="row-a" onclick="runMacro('a')">
+      <span class="macro-key">A</span>
+      <span class="macro-plus">+</span>
+      <span class="macro-key enter">Enter</span>
+      <span class="macro-desc">Heartbeat blink</span>
+      <div class="macro-dot"></div>
+    </div>
+    <div class="macro-row" id="row-s" onclick="runMacro('s')">
+      <span class="macro-key">S</span>
+      <span class="macro-plus">+</span>
+      <span class="macro-key enter">Enter</span>
+      <span class="macro-desc">SOS · · · — — — · · ·</span>
+      <div class="macro-dot"></div>
+    </div>
+    <div class="macro-row" id="row-f" onclick="runMacro('f')">
+      <span class="macro-key">F</span>
+      <span class="macro-plus">+</span>
+      <span class="macro-key enter">Enter</span>
+      <span class="macro-desc">Fast strobe flash</span>
+      <div class="macro-dot"></div>
+    </div>
+    <div class="macro-row" id="row-o" onclick="runMacro('o')">
+      <span class="macro-key">O</span>
+      <span class="macro-plus">+</span>
+      <span class="macro-key enter">Enter</span>
+      <span class="macro-desc">Steady torch ON</span>
+      <div class="macro-dot"></div>
+    </div>
+    <div class="macro-row" id="row-stop" onclick="runMacro('')">
+      <span class="macro-key enter">Enter</span>
+      <span class="macro-plus" style="visibility:hidden">+</span>
+      <span class="macro-key" style="visibility:hidden">·</span>
+      <span class="macro-desc">Stop / Turn OFF</span>
+      <div class="macro-dot"></div>
+    </div>
+  </div>
+
+  <div id="statusBar">Waiting…</div>
 </div>
-
-<div class="macros">
-  <div class="macro-row" id="row-a">
-    <span class="macro-key">A</span>
-    <span class="macro-plus">+</span>
-    <span class="macro-key enter">Enter</span>
-    <span class="macro-desc">Heartbeat blink (lub-dub)</span>
-    <div class="macro-dot"></div>
-  </div>
-  <div class="macro-row" id="row-s">
-    <span class="macro-key">S</span>
-    <span class="macro-plus">+</span>
-    <span class="macro-key enter">Enter</span>
-    <span class="macro-desc">SOS signal · · · — — — · · ·</span>
-    <div class="macro-dot"></div>
-  </div>
-  <div class="macro-row" id="row-f">
-    <span class="macro-key">F</span>
-    <span class="macro-plus">+</span>
-    <span class="macro-key enter">Enter</span>
-    <span class="macro-desc">Fast strobe flash</span>
-    <div class="macro-dot"></div>
-  </div>
-  <div class="macro-row" id="row-o">
-    <span class="macro-key">O</span>
-    <span class="macro-plus">+</span>
-    <span class="macro-key enter">Enter</span>
-    <span class="macro-desc">Steady torch ON</span>
-    <div class="macro-dot"></div>
-  </div>
-  <div class="macro-row" id="row-stop">
-    <span class="macro-key enter">Enter</span>
-    <span class="macro-plus" style="visibility:hidden">+</span>
-    <span class="macro-key" style="visibility:hidden">·</span>
-    <span class="macro-desc">Stop everything / OFF</span>
-    <div class="macro-dot"></div>
-  </div>
-</div>
-
-<div id="statusBar">Waiting…</div>
 
 <script>
   let torchTrack  = null;
   let blinkTimer  = null;
   let cameraReady = false;
-  let typedKey    = '';
 
-  // ── Auto-request camera on page load ──────────────────────────────
-  window.addEventListener('load', () => {
-    setTimeout(requestPermission, 300);
-  });
+  // ── Auto-request camera on load ───────────────────────────────────
+  window.addEventListener('load', () => setTimeout(requestPermission, 300));
 
   async function requestPermission() {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       torchTrack = stream.getVideoTracks()[0];
       const caps = torchTrack.getCapabilities();
       if (!caps || !caps.torch) {
-        showPermError('Torch not supported on this device or browser (try Android Chrome).');
+        showPermErr('Torch not supported on this device. Try Android Chrome.');
         return;
       }
       cameraReady = true;
       document.getElementById('permOverlay').style.display = 'none';
-      document.body.focus();
-      setStatus('Ready — type a macro key + Enter');
+      // Focus input AFTER overlay hides — this pops the keyboard on mobile
+      setTimeout(() => document.getElementById('macroInput').focus(), 100);
+      setStatus('Ready — type a key + Enter');
     } catch (err) {
-      if (err.name === 'NotAllowedError') {
-        showPermError('Permission denied. Please allow camera access in your browser settings.');
-      } else {
-        showPermError('Could not access camera: ' + err.message);
-      }
+      showPermErr(err.name === 'NotAllowedError'
+        ? 'Permission denied. Allow camera in browser settings, then reload.'
+        : 'Camera error: ' + err.message);
     }
   }
 
-  function showPermError(msg) {
+  function showPermErr(msg) {
     const el = document.getElementById('permErr');
-    el.textContent = msg;
-    el.style.display = 'block';
+    el.textContent = msg; el.style.display = 'block';
   }
 
-  // ── Keyboard input ────────────────────────────────────────────────
-  document.body.addEventListener('keydown', (e) => {
+  // ── Input: Enter key triggers macro ──────────────────────────────
+  document.getElementById('macroInput').addEventListener('keydown', (e) => {
     if (!cameraReady) return;
     if (e.key === 'Enter') {
       e.preventDefault();
-      runMacro(typedKey.toLowerCase());
-      typedKey = '';
-      updateInput('');
-    } else if (e.key === 'Backspace') {
-      typedKey = '';
-      updateInput('');
-    } else if (e.key.length === 1) {
-      typedKey = e.key;
-      updateInput(e.key.toUpperCase());
+      const val = document.getElementById('macroInput').value.trim().toLowerCase();
+      runMacro(val);
+      document.getElementById('macroInput').value = '';
     }
   });
 
-  function updateInput(key) {
-    document.getElementById('typedKey').textContent = key;
-    document.getElementById('inputDisplay').classList.toggle('active', key !== '');
-  }
+  // Keep input focused if user taps away
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.macro-row') && cameraReady) {
+      setTimeout(() => document.getElementById('macroInput').focus(), 50);
+    }
+  });
 
   // ── Macro runner ──────────────────────────────────────────────────
   function runMacro(key) {
     stopAll();
     switch (key) {
-      case '':  setMode(null, 'STANDBY', 'Torch off — ready'); break;
+      case '':  setMode(null, 'STANDBY', 'Torch off'); break;
       case 'a': startHeartbeat(); break;
       case 's': startSOS();       break;
       case 'f': startStrobe();    break;
       case 'o': startSteady();    break;
-      default:
-        setStatus(`"${key.toUpperCase()}" not mapped — try A, S, F or O`);
+      default:  setStatus(`"${key.toUpperCase()}" not mapped — try A, S, F or O`);
     }
+    setTimeout(() => document.getElementById('macroInput').focus(), 50);
   }
 
-  // ── HEARTBEAT: lub-dub pattern ────────────────────────────────────
+  // ── HEARTBEAT: lub-dub ────────────────────────────────────────────
   function startHeartbeat() {
     setMode('a', 'HEARTBEAT', 'Lub-dub rhythm');
-    // on 80ms, off 100ms, on 80ms, off 700ms
     const pattern = [80, 100, 80, 700];
     let step = 0; let lit = false;
     async function beat() {
-      lit = !lit;
-      await setTorch(lit);
-      blinkTimer = setTimeout(beat, pattern[step % pattern.length]);
-      step++;
+      lit = !lit; await setTorch(lit);
+      blinkTimer = setTimeout(beat, pattern[step % pattern.length]); step++;
     }
     beat();
   }
 
-  // ── SOS: · · · — — — · · · ────────────────────────────────────────
+  // ── SOS: · · · — — — · · · ───────────────────────────────────────
   function startSOS() {
     setMode('s', 'SOS', '· · · — — — · · ·');
-    const D = 120, L = 360, SG = 120, LG = 360, WG = 900;
-    // alternating on/off durations
-    const seq = [
-      D,SG, D,SG, D,LG,          // S (· · ·)
-      L,SG, L,SG, L,LG,          // O (— — —)
-      D,SG, D,SG, D,WG           // S (· · ·) + word gap
-    ];
-    let i = 0; let lit = false;
+    const D=120, L=360, SG=120, LG=360, WG=900;
+    const seq = [D,SG,D,SG,D,LG, L,SG,L,SG,L,LG, D,SG,D,SG,D,WG];
+    let i=0; let lit=false;
     async function next() {
-      lit = !lit;
-      await setTorch(lit);
-      blinkTimer = setTimeout(next, seq[i % seq.length]);
-      i++;
+      lit=!lit; await setTorch(lit);
+      blinkTimer=setTimeout(next, seq[i%seq.length]); i++;
     }
     next();
   }
 
-  // ── STROBE: fast flash ────────────────────────────────────────────
+  // ── STROBE ────────────────────────────────────────────────────────
   function startStrobe() {
     setMode('f', 'STROBE', 'Rapid flash');
-    let lit = false;
+    let lit=false;
     async function flash() {
-      lit = !lit;
-      await setTorch(lit);
-      blinkTimer = setTimeout(flash, 55);
+      lit=!lit; await setTorch(lit);
+      blinkTimer=setTimeout(flash, 55);
     }
     flash();
   }
@@ -315,18 +311,16 @@
     setTorch(true);
   }
 
-  // ── Core torch control ────────────────────────────────────────────
+  // ── Core torch ────────────────────────────────────────────────────
   async function setTorch(on) {
     if (!torchTrack) return;
-    try {
-      await torchTrack.applyConstraints({ advanced: [{ torch: on }] });
-    } catch (e) {}
+    try { await torchTrack.applyConstraints({ advanced: [{ torch: on }] }); } catch(e){}
     document.body.classList.toggle('lit', on);
     document.getElementById('ambientGlow').style.opacity = on ? '1' : '0';
   }
 
   function stopAll() {
-    if (blinkTimer) { clearTimeout(blinkTimer); blinkTimer = null; }
+    if (blinkTimer) { clearTimeout(blinkTimer); blinkTimer=null; }
     setTorch(false);
     document.querySelectorAll('.macro-row').forEach(r => r.classList.remove('active-mode'));
   }
@@ -335,15 +329,12 @@
     document.getElementById('modeLabel').textContent = label;
     document.getElementById('modeDesc').textContent  = desc;
     document.querySelectorAll('.macro-row').forEach(r => r.classList.remove('active-mode'));
-    const rowId = key ? `row-${key}` : 'row-stop';
-    const row = document.getElementById(rowId);
+    const row = document.getElementById(key ? `row-${key}` : 'row-stop');
     if (row) row.classList.add('active-mode');
     setStatus(label === 'STANDBY' ? 'Torch off — ready' : `Active: ${label}`);
   }
 
-  function setStatus(msg) {
-    document.getElementById('statusBar').textContent = msg;
-  }
+  function setStatus(msg) { document.getElementById('statusBar').textContent = msg; }
 </script>
 </body>
 </html>
