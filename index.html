@@ -320,8 +320,6 @@
     </div>
   </div>
 
-  <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileSelect(event)"/>
-
   <div class="hints">
     <div class="hint-badge"><span class="k">Enter</span> Send to Telegram</div>
     <div class="hint-badge"><span class="k">Shift+Enter</span> New line</div>
@@ -330,7 +328,6 @@
 
   <div class="actions">
     <button class="secondary" onclick="clearAll()">Clear</button>
-    <button class="secondary" onclick="document.getElementById('fileInput').click()">📎 Attach Image</button>
     <button class="primary" id="sendBtn" onclick="handleSubmit()">Send to Telegram →</button>
   </div>
 
@@ -343,6 +340,7 @@
 
   let pastedImageBlob = null;
 
+  // ── Auto-focus ──────────────────────────────────────────────────
   window.addEventListener('load', () => {
     document.getElementById('mainInput').focus();
   });
@@ -353,6 +351,7 @@
     }
   });
 
+  // ── Enter to send (Shift+Enter = new line) ──────────────────────
   document.getElementById('mainInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -360,6 +359,7 @@
     }
   });
 
+  // ── Image paste ─────────────────────────────────────────────────
   document.getElementById('mainInput').addEventListener('paste', (e) => {
     const items = e.clipboardData?.items;
     if (!items) return;
@@ -367,40 +367,15 @@
       if (item.type.startsWith('image/')) {
         e.preventDefault();
         pastedImageBlob = item.getAsFile();
-        showImagePreview(pastedImageBlob);
+        const url = URL.createObjectURL(pastedImageBlob);
+        document.getElementById('pasteImg').src = url;
+        document.getElementById('pastePreview').style.display = 'block';
         break;
       }
     }
   });
 
-  function handleFileSelect(e) {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      pastedImageBlob = file;
-      showImagePreview(file);
-    }
-    e.target.value = '';
-  }
-
-  const card = document.querySelector('.card');
-  card.addEventListener('dragover', (e) => { e.preventDefault(); card.style.borderColor = 'var(--accent)'; });
-  card.addEventListener('dragleave', () => { card.style.borderColor = ''; });
-  card.addEventListener('drop', (e) => {
-    e.preventDefault();
-    card.style.borderColor = '';
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      pastedImageBlob = file;
-      showImagePreview(file);
-    }
-  });
-
-  function showImagePreview(blob) {
-    const url = URL.createObjectURL(blob);
-    document.getElementById('pasteImg').src = url;
-    document.getElementById('pastePreview').style.display = 'block';
-  }
-
+  // ── Send to Telegram ────────────────────────────────────────────
   async function handleSubmit() {
     const text = document.getElementById('mainInput').value.trim();
     const btn  = document.getElementById('sendBtn');
@@ -415,6 +390,7 @@
 
     try {
       if (pastedImageBlob) {
+        // Send image (with optional caption)
         const form = new FormData();
         form.append('chat_id', CHAT_ID);
         form.append('photo', pastedImageBlob, 'image.png');
@@ -427,6 +403,7 @@
         const data = await res.json();
         if (!data.ok) throw new Error(data.description);
       } else {
+        // Send text only
         const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
