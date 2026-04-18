@@ -19,17 +19,13 @@
       align-items: center; justify-content: flex-start;
       overflow-y: auto; padding: 36px 16px 60px;
     }
-
-    /* Ambient glow — color changes per mode */
     #ambientGlow {
       position: fixed; inset: 0; pointer-events: none;
       opacity: 0; transition: opacity 0.2s, background 0.2s; z-index: 0;
     }
     #ambientGlow.yellow { background: radial-gradient(circle at 50% 30%, rgba(255,220,0,0.2) 0%, transparent 65%); }
     #ambientGlow.purple { background: radial-gradient(circle at 50% 30%, rgba(180,80,255,0.2) 0%, transparent 65%); }
-
     .content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 100%; }
-
     .torch-icon {
       font-size: 80px; line-height: 1; margin-bottom: 16px;
       transition: filter 0.1s, transform 0.1s;
@@ -38,15 +34,12 @@
       filter: drop-shadow(0 0 30px #ffdd00) drop-shadow(0 0 60px #ffaa00);
       transform: scale(1.1);
     }
-    body.vibrating .torch-icon {
-      animation: shake 0.3s ease-in-out infinite;
-    }
+    body.vibrating .torch-icon { animation: shake 0.3s ease-in-out infinite; }
     @keyframes shake {
       0%,100%{transform:translateX(0)}
       25%{transform:translateX(-4px)}
       75%{transform:translateX(4px)}
     }
-
     #modeLabel {
       font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800;
       letter-spacing: 0.06em; color: #222; margin-bottom: 6px;
@@ -54,15 +47,12 @@
     }
     body.lit #modeLabel       { color: var(--yellow); text-shadow: 0 0 20px rgba(255,220,0,0.5); }
     body.vibrating #modeLabel { color: var(--purple); text-shadow: 0 0 20px rgba(180,80,255,0.4); }
-
     #modeDesc {
       font-size: 11px; color: var(--muted); letter-spacing: 0.12em;
       text-transform: uppercase; margin-bottom: 28px; min-height: 16px;
     }
     body.lit #modeDesc       { color: #7a6500; }
     body.vibrating #modeDesc { color: #6a3a8a; }
-
-    /* Input */
     .input-wrap { width: min(360px, 92vw); margin-bottom: 20px; }
     #macroInput {
       width: 100%; background: var(--surface); border: 1.5px solid var(--border);
@@ -78,15 +68,11 @@
     #macroInput:focus {
       border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(255,220,0,0.1);
     }
-
-    /* Macro rows */
     .macros { display: flex; flex-direction: column; gap: 7px; width: min(360px, 92vw); }
-
     .section-label {
       font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
       color: #2a2a2a; margin: 10px 0 2px 4px;
     }
-
     .macro-row {
       display: flex; align-items: center; gap: 10px;
       padding: 11px 14px; border-radius: 10px;
@@ -96,7 +82,7 @@
     .macro-row:active { opacity: 0.7; }
     .macro-row.active-mode.yellow { border-color: var(--yellow); background: rgba(255,220,0,0.05); }
     .macro-row.active-mode.purple { border-color: var(--purple); background: rgba(180,80,255,0.05); }
-
+    .macro-row.active-mode.bell   { border-color: #00ccff; background: rgba(0,200,255,0.05); }
     .macro-key {
       background: rgba(255,255,255,0.07); border: 1px solid #333;
       border-radius: 6px; padding: 3px 10px; font-size: 13px;
@@ -111,17 +97,13 @@
     }
     .macro-row.active-mode.yellow .macro-dot { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
     .macro-row.active-mode.purple .macro-dot { background: var(--purple); box-shadow: 0 0 6px var(--purple); }
-    .macro-row.active-mode.bell { border-color: #00ccff; background: rgba(0,200,255,0.05); }
-    .macro-row.active-mode.bell .macro-dot { background: #00ccff; box-shadow: 0 0 6px #00ccff; }
-
+    .macro-row.active-mode.bell   .macro-dot { background: #00ccff; box-shadow: 0 0 6px #00ccff; }
     #statusBar {
       margin-top: 20px; font-size: 11px; letter-spacing: 0.12em;
       text-transform: uppercase; color: #2a2a2a; transition: color 0.3s;
     }
     body.lit       #statusBar { color: #5a4a00; }
     body.vibrating #statusBar { color: #5a3a7a; }
-
-    /* Permission overlay */
     #permOverlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.96);
       display: flex; flex-direction: column;
@@ -145,7 +127,7 @@
 </head>
 <body>
 
-<!-- iOS Safari haptic trigger (iOS 17.4+ via switch checkbox) -->
+<!-- iOS Safari haptic trigger -->
 <div style="position:absolute; left:-9999px; pointer-events:none;" aria-hidden="true">
   <input type="checkbox" switch id="hapticTrigger"/>
   <label for="hapticTrigger" id="hapticLabel"></label>
@@ -156,7 +138,7 @@
 <div id="permOverlay">
   <div class="p-icon">🔦</div>
   <h2>Allow Camera Access</h2>
-  <p>Camera permission is needed to control the flashlight.</p>
+  <p>Camera permission is needed to control the flashlight. Max volume recommended for vibration rumble.</p>
   <button onclick="requestPermission()">Allow &amp; Continue</button>
   <div id="permErr"></div>
 </div>
@@ -168,16 +150,14 @@
 
   <div class="input-wrap">
     <input type="text" id="macroInput"
-      placeholder="Type A, S, F, O, V, P… then Enter"
+      placeholder="Type key (A/S/F/O/V/P/B/L) then Enter"
       autocomplete="off" autocorrect="off"
       autocapitalize="characters"
       spellcheck="false" maxlength="1"/>
   </div>
 
   <div class="macros">
-
     <div class="section-label">🔦 Torch macros</div>
-
     <div class="macro-row" id="row-o" onclick="runMacro('o')">
       <span class="macro-key">O</span><span class="macro-plus">+</span>
       <span class="macro-key enter">Enter</span>
@@ -187,7 +167,7 @@
     <div class="macro-row" id="row-a" onclick="runMacro('a')">
       <span class="macro-key">A</span><span class="macro-plus">+</span>
       <span class="macro-key enter">Enter</span>
-      <span class="macro-desc">Heartbeat blink (lub-dub)</span>
+      <span class="macro-desc">Heartbeat blink</span>
       <div class="macro-dot"></div>
     </div>
     <div class="macro-row" id="row-s" onclick="runMacro('s')">
@@ -203,38 +183,35 @@
       <div class="macro-dot"></div>
     </div>
 
-    <div class="section-label">📳 Vibration macros</div>
-
+    <div class="section-label">📳 Vibration macros (volume UP)</div>
     <div class="macro-row" id="row-v" onclick="runMacro('v')">
       <span class="macro-key">V</span><span class="macro-plus">+</span>
       <span class="macro-key enter">Enter</span>
-      <span class="macro-desc">Continuous vibration</span>
+      <span class="macro-desc">MAX continuous rumble</span>
       <div class="macro-dot"></div>
     </div>
     <div class="macro-row" id="row-p" onclick="runMacro('p')">
       <span class="macro-key">P</span><span class="macro-plus">+</span>
       <span class="macro-key enter">Enter</span>
-      <span class="macro-desc">Pulse vibration (on/off)</span>
+      <span class="macro-desc">Pulsing rumble</span>
       <div class="macro-dot"></div>
     </div>
     <div class="macro-row" id="row-b" onclick="runMacro('b')">
       <span class="macro-key">B</span><span class="macro-plus">+</span>
       <span class="macro-key enter">Enter</span>
-      <span class="macro-desc">Heartbeat vibration</span>
+      <span class="macro-desc">Heartbeat rumble</span>
       <div class="macro-dot"></div>
     </div>
 
-    <div class="section-label">⬛ Stop</div>
-
+    <div class="section-label">🔔 Sound macros</div>
     <div class="macro-row" id="row-l" onclick="runMacro('l')">
       <span class="macro-key">L</span><span class="macro-plus">+</span>
       <span class="macro-key enter">Enter</span>
-      <span class="macro-desc">🔔 Bell sound (repeating)</span>
+      <span class="macro-desc">🔔 Bell sound</span>
       <div class="macro-dot"></div>
     </div>
 
     <div class="section-label">⬛ Stop</div>
-
     <div class="macro-row" id="row-stop" onclick="runMacro('')">
       <span class="macro-key enter">Enter</span>
       <span class="macro-plus" style="visibility:hidden">+</span>
@@ -248,34 +225,53 @@
 </div>
 
 <script>
-  let torchTrack   = null;
-  let blinkTimer   = null;
-  let vibTimer     = null;
-  let cameraReady  = false;
-  let vibSupported = !!navigator.vibrate;
+  // ── State ─────────────────────────────────────────────────────────
+  let torchTrack  = null;
+  let blinkTimer  = null;
+  let vibTimer    = null;
+  let androidRefresh = null;
+  let cameraReady = false;
 
-  // ── Auto camera request on load ───────────────────────────────────
+  // AudioContext for bell + rumble
+  let audioCtx  = null;
+  let rumbleNodes = null; // {osc1, osc2, gain}
+  let bellTimer = null;
+
+  const hapticLabel = document.getElementById('hapticLabel');
+  function doHaptic() {
+    try { hapticLabel.click(); } catch(e) {}
+  }
+
+  function getAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  // ── Camera permission ─────────────────────────────────────────────
   window.addEventListener('load', () => setTimeout(requestPermission, 300));
 
   async function requestPermission() {
+    // Pre-init audio context on this user gesture (required on iOS)
+    try { getAudio(); } catch(e){}
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       torchTrack = stream.getVideoTracks()[0];
-      const caps = torchTrack.getCapabilities();
-      if (!caps || !caps.torch) {
-        showPermErr('Torch not supported on this device. Vibration macros will still work.');
+      const caps = torchTrack.getCapabilities ? torchTrack.getCapabilities() : {};
+      if (!caps.torch) {
+        showPermErr('Torch not supported on this device. Vibration + sound still work.');
       }
       cameraReady = true;
       document.getElementById('permOverlay').style.display = 'none';
       setTimeout(() => document.getElementById('macroInput').focus(), 100);
       setStatus('Ready — type a key + Enter');
     } catch (err) {
-      // Even if camera fails, allow vibration-only use
       cameraReady = true;
       document.getElementById('permOverlay').style.display = 'none';
       setTimeout(() => document.getElementById('macroInput').focus(), 100);
-      showPermErr('Camera denied — torch macros disabled, vibration still works.');
-      setStatus('Vibration only mode');
+      showPermErr('Camera denied — vibration + sound still work.');
+      setStatus('Vibration + sound only');
     }
   }
 
@@ -284,7 +280,7 @@
     el.textContent = msg; el.style.display = 'block';
   }
 
-  // ── Input ─────────────────────────────────────────────────────────
+  // ── Input handling ────────────────────────────────────────────────
   document.getElementById('macroInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -295,36 +291,45 @@
   });
 
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.macro-row') && cameraReady)
+    if (!e.target.closest('.macro-row') && !e.target.closest('button') && cameraReady)
       setTimeout(() => document.getElementById('macroInput').focus(), 50);
   });
 
-  // ── Macro runner ──────────────────────────────────────────────────
+  // ── Macro dispatcher ──────────────────────────────────────────────
   function runMacro(key) {
     stopAll();
     switch (key) {
-      case '':  setMode(null,  'STANDBY',    'All off', 'yellow'); break;
-      case 'o': startSteady();     break;
-      case 'a': startHeartbeat();  break;
-      case 's': startSOS();        break;
-      case 'f': startStrobe();     break;
-      case 'v': startVibCont();    break;
-      case 'p': startVibPulse();   break;
+      case '':  setMode(null, 'STANDBY', 'All off', 'yellow'); break;
+      case 'o': startSteady();       break;
+      case 'a': startHeartbeat();    break;
+      case 's': startSOS();          break;
+      case 'f': startStrobe();       break;
+      case 'v': startVibCont();      break;
+      case 'p': startVibPulse();     break;
       case 'b': startVibHeartbeat(); break;
       case 'l': startBell();         break;
-      default:  setStatus(`"${key.toUpperCase()}" not mapped`);
+      default:  setStatus('"' + key.toUpperCase() + '" not mapped');
     }
     setTimeout(() => document.getElementById('macroInput').focus(), 50);
   }
 
-  // ── TORCH MACROS ──────────────────────────────────────────────────
+  // ── TORCH ─────────────────────────────────────────────────────────
+  async function setTorch(on) {
+    if (!torchTrack) return;
+    try { await torchTrack.applyConstraints({ advanced: [{ torch: on }] }); } catch(e){}
+    document.body.classList.toggle('lit', on);
+    const glow = document.getElementById('ambientGlow');
+    glow.className = on ? 'yellow' : '';
+    glow.style.opacity = on ? '1' : '0';
+  }
+
   function startSteady() {
     setMode('o', 'STEADY ON', 'Torch on full', 'yellow');
     setTorch(true);
   }
 
   function startHeartbeat() {
-    setMode('a', 'HEARTBEAT', 'Lub-dub rhythm', 'yellow');
+    setMode('a', 'HEARTBEAT', 'Lub-dub blink', 'yellow');
     const pattern = [80, 100, 80, 700];
     let step = 0; let lit = false;
     async function beat() {
@@ -356,151 +361,112 @@
     flash();
   }
 
-  // ── VIBRATION MACROS ──────────────────────────────────────────────
-
-  // ── Universal vibrate: tries Android API, falls back to iOS Safari haptic trick ──
-  const hapticLabel = document.getElementById('hapticLabel');
-
-  function doHaptic() {
-    // iOS 17.4+ trick — clicking a <label> for an <input type="checkbox" switch>
-    // triggers a native haptic pulse
-    hapticLabel.click();
-  }
-
-  function vibrateNow(duration) {
-    // Try native vibration first (Android Chrome + newer iOS)
-    let fired = false;
+  // ── VIBRATION: speaker rumble + haptic ticks + native vibrate ────
+  function startRumble(freq) {
+    stopRumble();
     try {
-      if (navigator.vibrate) {
-        fired = navigator.vibrate(duration);
-      }
-    } catch (e) {}
-    // ALWAYS also trigger iOS haptic trick (Safari ignores navigator.vibrate)
-    // Small delay to avoid double-fire on Android
-    doHaptic();
+      const ctx = getAudio();
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc1.type = 'sawtooth';
+      osc2.type = 'square';
+      osc1.frequency.value = freq;
+      osc2.frequency.value = freq * 1.03;
+      gain.gain.value = 1.0;
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+      osc1.start(); osc2.start();
+      rumbleNodes = { osc1, osc2, gain };
+    } catch(e) {}
   }
 
-  // MAX Continuous — haptic tick every 60ms = near-continuous buzzing on iOS
+  function stopRumble() {
+    if (rumbleNodes) {
+      try { rumbleNodes.osc1.stop(); } catch(e){}
+      try { rumbleNodes.osc2.stop(); } catch(e){}
+      rumbleNodes = null;
+    }
+  }
+
+  function setRumbleGain(v) {
+    if (rumbleNodes && rumbleNodes.gain) rumbleNodes.gain.value = v;
+  }
+
   function startVibCont() {
-    setMode('v', 'MAX VIBRATION', 'Full power continuous', 'purple');
+    setMode('v', 'MAX VIBRATION', 'Continuous rumble', 'purple');
     document.body.classList.add('vibrating');
-    // Native vibrate (Android) + repeating haptic pulses (iOS)
+    startRumble(35);
     try { navigator.vibrate && navigator.vibrate(10000); } catch(e) {}
     function buzz() {
-      doHaptic(); // iOS haptic tick
-      vibTimer = setTimeout(buzz, 60); // Fast enough to feel continuous
+      doHaptic();
+      vibTimer = setTimeout(buzz, 40);
     }
     buzz();
-    // Re-trigger Android every ~10s
-    const androidRefresh = setInterval(() => {
+    androidRefresh = setInterval(() => {
       try { navigator.vibrate && navigator.vibrate(10000); } catch(e) {}
     }, 9800);
-    vibTimer._androidRefresh = androidRefresh;
   }
 
-  // MAX Pulse — haptic every 100ms
   function startVibPulse() {
-    setMode('p', 'MAX PULSE', 'Rapid haptic pulses', 'purple');
+    setMode('p', 'MAX PULSE', 'Pulsing rumble', 'purple');
     document.body.classList.add('vibrating');
-    try {
-      navigator.vibrate && navigator.vibrate([50,5,50,5,50,5,50,5,50,5,50,5,50,5,50,5,50,5,50,5]);
-    } catch(e) {}
+    startRumble(45);
+    setRumbleGain(0);
+    try { navigator.vibrate && navigator.vibrate([100,80,100,80,100,80,100,80]); } catch(e) {}
     function pulse() {
+      setRumbleGain(1.0);
       doHaptic();
-      vibTimer = setTimeout(pulse, 100);
+      setTimeout(() => setRumbleGain(0), 130);
+      vibTimer = setTimeout(pulse, 280);
     }
     pulse();
   }
 
-  // Heartbeat — lub-dub via two quick haptics then pause
   function startVibHeartbeat() {
-    setMode('b', 'VIB HEARTBEAT', 'Lub-dub rhythm', 'purple');
+    setMode('b', 'HEARTBEAT RUMBLE', 'Strong lub-dub', 'purple');
     document.body.classList.add('vibrating');
+    startRumble(50);
+    setRumbleGain(0);
     function beat() {
-      // Android: native pattern
       try { navigator.vibrate && navigator.vibrate([200, 80, 200, 600]); } catch(e) {}
-      // iOS: lub-dub via two haptic clicks 280ms apart
-      doHaptic();
-      setTimeout(doHaptic, 280);
+      // LUB
+      setRumbleGain(1.0); doHaptic();
+      setTimeout(() => setRumbleGain(0), 150);
+      // DUB
+      setTimeout(() => {
+        setRumbleGain(1.0); doHaptic();
+        setTimeout(() => setRumbleGain(0), 150);
+      }, 280);
       vibTimer = setTimeout(beat, 1080);
     }
     beat();
   }
 
-  // ── Core torch ────────────────────────────────────────────────────
-  async function setTorch(on) {
-    if (!torchTrack) return;
-    try { await torchTrack.applyConstraints({ advanced: [{ torch: on }] }); } catch(e){}
-    document.body.classList.toggle('lit', on);
-    const glow = document.getElementById('ambientGlow');
-    glow.className = on ? 'yellow' : '';
-    glow.style.opacity = on ? '1' : '0';
-  }
-
-  function stopAll() {
-    // Stop torch
-    if (blinkTimer) { clearTimeout(blinkTimer); blinkTimer = null; }
-    setTorch(false);
-    // Stop vibration
-    if (vibTimer) {
-      if (vibTimer._androidRefresh) clearInterval(vibTimer._androidRefresh);
-      clearTimeout(vibTimer);
-      vibTimer = null;
-    }
-    try { navigator.vibrate && navigator.vibrate(0); } catch(e) {}
-    stopRumble();
-    stopBell();
-    document.body.classList.remove('lit', 'vibrating');
-    const glow = document.getElementById('ambientGlow');
-    glow.style.opacity = '0'; glow.className = '';
-    document.querySelectorAll('.macro-row').forEach(r => r.classList.remove('active-mode', 'yellow', 'purple'));
-  }
-
-  function setMode(key, label, desc, color) {
-    document.getElementById('modeLabel').textContent = label;
-    document.getElementById('modeDesc').textContent  = desc;
-    document.querySelectorAll('.macro-row').forEach(r => r.classList.remove('active-mode','yellow','purple'));
-    const rowId = key ? `row-${key}` : 'row-stop';
-    const row = document.getElementById(rowId);
-    if (row) { row.classList.add('active-mode', color); }
-    setStatus(label === 'STANDBY' ? 'All off — ready' : `Active: ${label}`);
-  }
-
-  function setStatus(msg) { document.getElementById('statusBar').textContent = msg; }
-
-  // ── BELL SOUND (Web Audio API) ────────────────────────────────────
-  let bellTimer = null;
-  let bellCtx   = null;
-
-  function createBellCtx() {
-    if (!bellCtx) bellCtx = new (window.AudioContext || window.webkitAudioContext)();
-    return bellCtx;
-  }
-
+  // ── BELL ──────────────────────────────────────────────────────────
   function ringBell() {
-    const ctx = createBellCtx();
-    const now = ctx.currentTime;
-
-    // Bell = sine at fundamental + harmonics, with fast attack + slow decay
-    const freqs    = [440, 880, 1320, 1760, 2200]; // harmonics
-    const gains    = [1.0, 0.6, 0.3,  0.15, 0.08];
-    const duration = 2.5;
-
-    freqs.forEach((freq, i) => {
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now);
-      // Slight frequency drop — bell characteristic
-      osc.frequency.exponentialRampToValueAtTime(freq * 0.995, now + duration);
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(gains[i] * 0.4, now + 0.005); // sharp attack
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);  // long decay
-      osc.start(now);
-      osc.stop(now + duration);
-    });
+    try {
+      const ctx = getAudio();
+      const now = ctx.currentTime;
+      const freqs = [440, 880, 1320, 1760, 2200];
+      const gains = [1.0, 0.6, 0.3, 0.15, 0.08];
+      const duration = 2.5;
+      freqs.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.995, now + duration);
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(gains[i] * 0.4, now + 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + duration);
+      });
+    } catch(e) {}
   }
 
   function startBell() {
@@ -509,9 +475,39 @@
     bellTimer = setInterval(ringBell, 3000);
   }
 
-  function stopBell() {
+  // ── STOP EVERYTHING ──────────────────────────────────────────────
+  function stopAll() {
+    // Torch
+    if (blinkTimer) { clearTimeout(blinkTimer); blinkTimer = null; }
+    setTorch(false);
+    // Vibration
+    if (vibTimer) { clearTimeout(vibTimer); vibTimer = null; }
+    if (androidRefresh) { clearInterval(androidRefresh); androidRefresh = null; }
+    try { navigator.vibrate && navigator.vibrate(0); } catch(e) {}
+    stopRumble();
+    // Bell
     if (bellTimer) { clearInterval(bellTimer); bellTimer = null; }
+    // Visuals
+    document.body.classList.remove('lit', 'vibrating');
+    const glow = document.getElementById('ambientGlow');
+    glow.style.opacity = '0'; glow.className = '';
+    document.querySelectorAll('.macro-row').forEach(r =>
+      r.classList.remove('active-mode', 'yellow', 'purple', 'bell'));
   }
+
+  // ── UI helpers ────────────────────────────────────────────────────
+  function setMode(key, label, desc, color) {
+    document.getElementById('modeLabel').textContent = label;
+    document.getElementById('modeDesc').textContent  = desc;
+    document.querySelectorAll('.macro-row').forEach(r =>
+      r.classList.remove('active-mode','yellow','purple','bell'));
+    const rowId = key ? ('row-' + key) : 'row-stop';
+    const row = document.getElementById(rowId);
+    if (row) { row.classList.add('active-mode', color); }
+    setStatus(label === 'STANDBY' ? 'All off — ready' : 'Active: ' + label);
+  }
+
+  function setStatus(msg) { document.getElementById('statusBar').textContent = msg; }
 </script>
 </body>
 </html>
