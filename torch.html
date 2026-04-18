@@ -19,17 +19,13 @@
       align-items: center; justify-content: flex-start;
       overflow-y: auto; padding: 36px 16px 60px;
     }
-
-    /* Ambient glow — color changes per mode */
     #ambientGlow {
       position: fixed; inset: 0; pointer-events: none;
       opacity: 0; transition: opacity 0.2s, background 0.2s; z-index: 0;
     }
     #ambientGlow.yellow { background: radial-gradient(circle at 50% 30%, rgba(255,220,0,0.2) 0%, transparent 65%); }
     #ambientGlow.purple { background: radial-gradient(circle at 50% 30%, rgba(180,80,255,0.2) 0%, transparent 65%); }
-
     .content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; width: 100%; }
-
     .torch-icon {
       font-size: 80px; line-height: 1; margin-bottom: 16px;
       transition: filter 0.1s, transform 0.1s;
@@ -38,31 +34,25 @@
       filter: drop-shadow(0 0 30px #ffdd00) drop-shadow(0 0 60px #ffaa00);
       transform: scale(1.1);
     }
-    body.vibrating .torch-icon {
-      animation: shake 0.3s ease-in-out infinite;
-    }
+    body.vibrating .torch-icon { animation: shake 0.3s ease-in-out infinite; }
     @keyframes shake {
       0%,100%{transform:translateX(0)}
       25%{transform:translateX(-4px)}
       75%{transform:translateX(4px)}
     }
-
     #modeLabel {
       font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800;
       letter-spacing: 0.06em; color: #222; margin-bottom: 6px;
       transition: color 0.2s; min-height: 34px;
     }
-    body.lit #modeLabel       { color: var(--yellow); text-shadow: 0 0 20px rgba(255,220,0,0.5); }
+    body.lit #modeLabel { color: var(--yellow); text-shadow: 0 0 20px rgba(255,220,0,0.5); }
     body.vibrating #modeLabel { color: var(--purple); text-shadow: 0 0 20px rgba(180,80,255,0.4); }
-
     #modeDesc {
       font-size: 11px; color: var(--muted); letter-spacing: 0.12em;
       text-transform: uppercase; margin-bottom: 28px; min-height: 16px;
     }
-    body.lit #modeDesc       { color: #7a6500; }
+    body.lit #modeDesc { color: #7a6500; }
     body.vibrating #modeDesc { color: #6a3a8a; }
-
-    /* Input */
     .input-wrap { width: min(360px, 92vw); margin-bottom: 20px; }
     #macroInput {
       width: 100%; background: var(--surface); border: 1.5px solid var(--border);
@@ -78,15 +68,11 @@
     #macroInput:focus {
       border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(255,220,0,0.1);
     }
-
-    /* Macro rows */
     .macros { display: flex; flex-direction: column; gap: 7px; width: min(360px, 92vw); }
-
     .section-label {
       font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
       color: #2a2a2a; margin: 10px 0 2px 4px;
     }
-
     .macro-row {
       display: flex; align-items: center; gap: 10px;
       padding: 11px 14px; border-radius: 10px;
@@ -96,7 +82,6 @@
     .macro-row:active { opacity: 0.7; }
     .macro-row.active-mode.yellow { border-color: var(--yellow); background: rgba(255,220,0,0.05); }
     .macro-row.active-mode.purple { border-color: var(--purple); background: rgba(180,80,255,0.05); }
-
     .macro-key {
       background: rgba(255,255,255,0.07); border: 1px solid #333;
       border-radius: 6px; padding: 3px 10px; font-size: 13px;
@@ -111,15 +96,14 @@
     }
     .macro-row.active-mode.yellow .macro-dot { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
     .macro-row.active-mode.purple .macro-dot { background: var(--purple); box-shadow: 0 0 6px var(--purple); }
-
+    .macro-row.active-mode.bell { border-color: #00ccff; background: rgba(0,200,255,0.05); }
+    .macro-row.active-mode.bell .macro-dot { background: #00ccff; box-shadow: 0 0 6px #00ccff; }
     #statusBar {
       margin-top: 20px; font-size: 11px; letter-spacing: 0.12em;
       text-transform: uppercase; color: #2a2a2a; transition: color 0.3s;
     }
-    body.lit       #statusBar { color: #5a4a00; }
+    body.lit #statusBar { color: #5a4a00; }
     body.vibrating #statusBar { color: #5a3a7a; }
-
-    /* Permission overlay */
     #permOverlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.96);
       display: flex; flex-direction: column;
@@ -143,6 +127,12 @@
 </head>
 <body>
 
+<!-- iOS Safari haptic trigger (iOS 17.4+ via switch checkbox) -->
+<div style="position:absolute; left:-9999px; pointer-events:none;" aria-hidden="true">
+  <input type="checkbox" switch id="hapticTrigger"/>
+  <label for="hapticTrigger" id="hapticLabel"></label>
+</div>
+
 <div id="ambientGlow"></div>
 
 <div id="permOverlay">
@@ -160,14 +150,13 @@
 
   <div class="input-wrap">
     <input type="text" id="macroInput"
-      placeholder="Type A, S, F, O, V, P… then Enter"
+      placeholder="Type A, S, F, O, V, P, B, L… then Enter"
       autocomplete="off" autocorrect="off"
       autocapitalize="characters"
       spellcheck="false" maxlength="1"/>
   </div>
 
   <div class="macros">
-
     <div class="section-label">🔦 Torch macros</div>
 
     <div class="macro-row" id="row-o" onclick="runMacro('o')">
@@ -216,6 +205,15 @@
       <div class="macro-dot"></div>
     </div>
 
+    <div class="section-label">🔔 Sound macros</div>
+
+    <div class="macro-row" id="row-l" onclick="runMacro('l')">
+      <span class="macro-key">L</span><span class="macro-plus">+</span>
+      <span class="macro-key enter">Enter</span>
+      <span class="macro-desc">🔔 Bell sound (repeating)</span>
+      <div class="macro-dot"></div>
+    </div>
+
     <div class="section-label">⬛ Stop</div>
 
     <div class="macro-row" id="row-stop" onclick="runMacro('')">
@@ -237,7 +235,6 @@
   let cameraReady  = false;
   let vibSupported = !!navigator.vibrate;
 
-  // ── Auto camera request on load ───────────────────────────────────
   window.addEventListener('load', () => setTimeout(requestPermission, 300));
 
   async function requestPermission() {
@@ -253,7 +250,6 @@
       setTimeout(() => document.getElementById('macroInput').focus(), 100);
       setStatus('Ready — type a key + Enter');
     } catch (err) {
-      // Even if camera fails, allow vibration-only use
       cameraReady = true;
       document.getElementById('permOverlay').style.display = 'none';
       setTimeout(() => document.getElementById('macroInput').focus(), 100);
@@ -267,7 +263,6 @@
     el.textContent = msg; el.style.display = 'block';
   }
 
-  // ── Input ─────────────────────────────────────────────────────────
   document.getElementById('macroInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -282,18 +277,18 @@
       setTimeout(() => document.getElementById('macroInput').focus(), 50);
   });
 
-  // ── Macro runner ──────────────────────────────────────────────────
   function runMacro(key) {
     stopAll();
     switch (key) {
-      case '':  setMode(null,  'STANDBY',    'All off', 'yellow'); break;
-      case 'o': startSteady();     break;
-      case 'a': startHeartbeat();  break;
-      case 's': startSOS();        break;
-      case 'f': startStrobe();     break;
-      case 'v': startVibCont();    break;
-      case 'p': startVibPulse();   break;
+      case '':  setMode(null, 'STANDBY', 'All off', 'yellow'); break;
+      case 'o': startSteady();       break;
+      case 'a': startHeartbeat();    break;
+      case 's': startSOS();          break;
+      case 'f': startStrobe();       break;
+      case 'v': startVibCont();      break;
+      case 'p': startVibPulse();     break;
       case 'b': startVibHeartbeat(); break;
+      case 'l': startBell();         break;
       default:  setStatus(`"${key.toUpperCase()}" not mapped`);
     }
     setTimeout(() => document.getElementById('macroInput').focus(), 50);
@@ -338,41 +333,46 @@
     flash();
   }
 
-  // ── VIBRATION MACROS ──────────────────────────────────────────────
+  // ── VIBRATION (iOS Safari haptic trick + Android native) ─────────
+  const hapticLabel = document.getElementById('hapticLabel');
+  function doHaptic() { hapticLabel.click(); }
 
-  // Continuous — repeating long buzz
   function startVibCont() {
-    if (!vibSupported) { setStatus('Vibration not supported on this device'); return; }
-    setMode('v', 'VIBRATING', 'Continuous buzz', 'purple');
+    setMode('v', 'MAX VIBRATION', 'Full power continuous', 'purple');
     document.body.classList.add('vibrating');
+    try { navigator.vibrate && navigator.vibrate(10000); } catch(e) {}
     function buzz() {
-      navigator.vibrate(500);
-      vibTimer = setTimeout(buzz, 600);
+      doHaptic();
+      vibTimer = setTimeout(buzz, 60);
     }
     buzz();
+    const androidRefresh = setInterval(() => {
+      try { navigator.vibrate && navigator.vibrate(10000); } catch(e) {}
+    }, 9800);
+    vibTimer._androidRefresh = androidRefresh;
   }
 
-  // Pulse — on/off rhythm
   function startVibPulse() {
-    if (!vibSupported) { setStatus('Vibration not supported on this device'); return; }
-    setMode('p', 'PULSE', 'On / off rhythm', 'purple');
+    setMode('p', 'MAX PULSE', 'Rapid haptic pulses', 'purple');
     document.body.classList.add('vibrating');
+    try {
+      navigator.vibrate && navigator.vibrate([50,5,50,5,50,5,50,5,50,5,50,5,50,5,50,5,50,5,50,5]);
+    } catch(e) {}
     function pulse() {
-      navigator.vibrate([200, 200]);
-      vibTimer = setTimeout(pulse, 500);
+      doHaptic();
+      vibTimer = setTimeout(pulse, 100);
     }
     pulse();
   }
 
-  // Heartbeat vibration — lub-dub
   function startVibHeartbeat() {
-    if (!vibSupported) { setStatus('Vibration not supported on this device'); return; }
-    setMode('b', 'VIB HEARTBEAT', 'Lub-dub feel', 'purple');
+    setMode('b', 'VIB HEARTBEAT', 'Lub-dub rhythm', 'purple');
     document.body.classList.add('vibrating');
-    // [on, off, on, off] = lub, gap, dub, long pause
     function beat() {
-      navigator.vibrate([80, 100, 80, 700]);
-      vibTimer = setTimeout(beat, 1000);
+      try { navigator.vibrate && navigator.vibrate([200, 80, 200, 600]); } catch(e) {}
+      doHaptic();
+      setTimeout(doHaptic, 280);
+      vibTimer = setTimeout(beat, 1080);
     }
     beat();
   }
@@ -388,22 +388,25 @@
   }
 
   function stopAll() {
-    // Stop torch
     if (blinkTimer) { clearTimeout(blinkTimer); blinkTimer = null; }
     setTorch(false);
-    // Stop vibration
-    if (vibTimer) { clearTimeout(vibTimer); vibTimer = null; }
-    if (vibSupported) navigator.vibrate(0);
+    if (vibTimer) {
+      if (vibTimer._androidRefresh) clearInterval(vibTimer._androidRefresh);
+      clearTimeout(vibTimer);
+      vibTimer = null;
+    }
+    try { navigator.vibrate && navigator.vibrate(0); } catch(e) {}
+    stopBell();
     document.body.classList.remove('lit', 'vibrating');
     const glow = document.getElementById('ambientGlow');
     glow.style.opacity = '0'; glow.className = '';
-    document.querySelectorAll('.macro-row').forEach(r => r.classList.remove('active-mode', 'yellow', 'purple'));
+    document.querySelectorAll('.macro-row').forEach(r => r.classList.remove('active-mode', 'yellow', 'purple', 'bell'));
   }
 
   function setMode(key, label, desc, color) {
     document.getElementById('modeLabel').textContent = label;
     document.getElementById('modeDesc').textContent  = desc;
-    document.querySelectorAll('.macro-row').forEach(r => r.classList.remove('active-mode','yellow','purple'));
+    document.querySelectorAll('.macro-row').forEach(r => r.classList.remove('active-mode','yellow','purple','bell'));
     const rowId = key ? `row-${key}` : 'row-stop';
     const row = document.getElementById(rowId);
     if (row) { row.classList.add('active-mode', color); }
@@ -411,6 +414,47 @@
   }
 
   function setStatus(msg) { document.getElementById('statusBar').textContent = msg; }
+
+  // ── BELL SOUND (Web Audio API) ────────────────────────────────────
+  let bellTimer = null;
+  let bellCtx   = null;
+
+  function createBellCtx() {
+    if (!bellCtx) bellCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return bellCtx;
+  }
+
+  function ringBell() {
+    const ctx = createBellCtx();
+    const now = ctx.currentTime;
+    const freqs = [440, 880, 1320, 1760, 2200];
+    const gains = [1.0, 0.6, 0.3, 0.15, 0.08];
+    const duration = 2.5;
+    freqs.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.995, now + duration);
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(gains[i] * 0.4, now + 0.005);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      osc.start(now);
+      osc.stop(now + duration);
+    });
+  }
+
+  function startBell() {
+    setMode('l', 'BELL', 'Ringing every 3 seconds', 'bell');
+    ringBell();
+    bellTimer = setInterval(ringBell, 3000);
+  }
+
+  function stopBell() {
+    if (bellTimer) { clearInterval(bellTimer); bellTimer = null; }
+  }
 </script>
 </body>
 </html>
