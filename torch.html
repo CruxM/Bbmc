@@ -1,1 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Torch</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-off: #0a0a0a;
+      --bg-on:  #1a1500;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg-off);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 32px;
+      font-family: 'Courier New', monospace;
+      transition: background 0.4s;
+      overflow: hidden;
+      outline: none;
+    }
+
+    body.on { background: var(--bg-on); }
+
+    /* Big torch emoji */
+    .torch-icon {
+      font-size: 100px;
+      line-height: 1;
+      transition: filter 0.3s, transform 0.3s;
+      user-select: none;
+    }
+    body.on .torch-icon {
+      filter: drop-shadow(0 0 40px #ffdd00) drop-shadow(0 0 80px #ffaa00);
+      transform: scale(1.1);
+    }
+
+    /* Glow ring */
+    .ring {
+      position: fixed;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,220,0,0.18) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.4s;
+      pointer-events: none;
+    }
+    body.on .ring { opacity: 1; }
+
+    .label {
+      font-size: 13px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #333;
+      transition: color 0.3s;
+    }
+    body.on .label { color: #ffdd00; }
+
+    .key-hint {
+      position: fixed;
+      bottom: 36px;
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #2a2a2a;
+      transition: color 0.3s;
+    }
+    body.on .key-hint { color: #5a4a00; }
+
+    .key-hint span {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 5px;
+      padding: 2px 8px;
+      margin: 0 4px;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    body.on .key-hint span {
+      background: #2a2000;
+      border-color: #5a4a00;
+    }
+
+    /* Status pill */
+    .status {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 999px;
+      border: 1px solid #222;
+      color: #333;
+      background: transparent;
+      transition: all 0.3s;
+    }
+    body.on .status {
+      color: #ffdd00;
+      border-color: #ffdd00;
+      background: rgba(255,220,0,0.08);
+      box-shadow: 0 0 12px rgba(255,220,0,0.2);
+    }
+  </style>
+</head>
+<body tabindex="0">
+
+  <div class="ring"></div>
+
+  <div class="torch-icon">🔦</div>
+  <div class="label">Press Enter to toggle</div>
+  <div class="status" id="status">Off</div>
+
+  <div class="key-hint"><span>Enter</span> Toggle Torch</div>
+
+  <script>
+    let torchOn     = false;
+    let torchStream = null;
+
+    // Focus body so Enter key works immediately on page load
+    document.body.focus();
+
+    document.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        await toggleTorch();
+      }
+    });
+
+    // Also tap anywhere to toggle (mobile friendly)
+    document.body.addEventListener('click', async () => {
+      await toggleTorch();
+    });
+
+    async function toggleTorch() {
+      if (!torchOn) {
+        await turnOn();
+      } else {
+        turnOff();
+      }
+    }
+
+    async function turnOn() {
+      try {
+        torchStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' }
+        });
+        const track = torchStream.getVideoTracks()[0];
+        const capabilities = track.getCapabilities();
+
+        if (!capabilities.torch) {
+          torchStream.getTracks().forEach(t => t.stop());
+          torchStream = null;
+          showError('Torch not supported on this device.');
+          return;
+        }
+
+        await track.applyConstraints({ advanced: [{ torch: true }] });
+        torchOn = true;
+        document.body.classList.add('on');
+        document.getElementById('status').textContent = 'On';
+
+      } catch (err) {
+        if (err.name === 'NotAllowedError') {
+          showError('Camera permission denied. Allow it in browser settings.');
+        } else {
+          showError('Torch not supported on this device/browser.');
+        }
+      }
+    }
+
+    function turnOff() {
+      if (torchStream) {
+        torchStream.getVideoTracks().forEach(t => {
+          t.applyConstraints({ advanced: [{ torch: false }] }).catch(() => {});
+          t.stop();
+        });
+        torchStream = null;
+      }
+      torchOn = false;
+      document.body.classList.remove('on');
+      document.getElementById('status').textContent = 'Off';
+    }
+
+    function showError(msg) {
+      const s = document.getElementById('status');
+      s.textContent = msg;
+      s.style.color = '#ff5555';
+      s.style.borderColor = '#ff5555';
+      setTimeout(() => {
+        s.textContent = 'Off';
+        s.style.color = '';
+        s.style.borderColor = '';
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
 
